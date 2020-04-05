@@ -1,58 +1,80 @@
 <template>
   <div class="ebook" >
-    <transition name="slide-down">
-    <div class="title-wraper" v-show="titleAndButtonShow">
-      <div class="left">
-        <div class="icon-circle-left icon"></div>
-      </div>
-      <div class="right">
-        <div class="icon-wraper">
-          <div class="icon-cart icon"></div>
-        </div>
-        <div class="icon-wraper">
-          <div class="icon-user icon"></div>
-        </div>
-        <div class="icon-wraper">
-          <div class="icon-more-vertical icon"></div>
-        </div>
-      </div>
-    </div>
-    </transition>
+      <title-menu :titleAndButtonShow =titleAndButtonShow></title-menu>
     <div class="read-wraper">
       <div id="read"></div>
       <div class="mask">
         <div class="left"   @click="leftTurning" ></div>
-        <div class="center" @click="changeTitleAndBottonShow()"></div>
+        <div class="center" @click="changeTitleAndButtonShow()"></div>
         <div class="right"  @click="rightTurning"></div>
       </div>
     </div>
-    <transition name="slide-up">
-    <div class="bottom-wrapper" v-show="titleAndButtonShow">
-        <div class="icon-wraper">
-          <div class="icon-list icon"></div>
-        </div>
-        <div class="icon-wraper">
-          <div class="icon-sun icon"></div>
-        </div>
-        <div class="icon-wraper">
-          <div class="icon-brightness-contrast icon"></div>
-        </div>
-        <div class="icon-wraper">
-          <div class="icon">A</div>
-        </div>
-    </div>
-    </transition>
+      <bottom-menu :titleAndButtonShow =titleAndButtonShow ref="bottomMenu" :fontSizeList="fontSizeList" :defaultFontSize="defaultFontSize" @setFontSize="setFontSize"  setSelectTheme="setSelectTheme"></bottom-menu>
   </div>
 </template>
 
 <script>
 import Epub from 'epubjs'
+import TitleMenu from  '@/components/TitleMenu';
+import BottomMenu from "@/components/BottomMenu";
 const DOWNLOAD_PATH = '/static/deep web.epub'
 export default {
   name: 'Ebook',
+  components: {TitleMenu,BottomMenu},
   data(){
     return{
-      titleAndButtonShow:false
+      titleAndButtonShow:false,
+       fontSizeList:[
+         {fontSize:12},
+         {fontSize:14},
+         {fontSize:16},
+         {fontSize:18},
+         {fontSize:20},
+         {fontSize:22},
+         {fontSize:24}
+         ],
+      defaultFontSize:16,
+      styleTheme : ['default','eye','night','gold'],
+      defaultThem:0,
+      themeList:[
+        {
+          name:'default',
+          style:{
+            body:{
+            'color':'#000',
+            'background':'FFF'
+            }
+          }
+        },
+        {
+          name:'eye',
+          style: {
+            body:{
+              'color': '#000',
+              'background': '#ceeaba'
+            }
+          }
+        },
+        {
+          name:'night',
+          style: {
+            body: {
+              'color': '#fff',
+              'background': '#000'
+            }
+          }
+        },
+        {
+          name:'gold',
+          style: {
+            body: {
+              'color': '#000',
+              'background': 'rgb(241,236,226)'
+            }
+          }
+        },
+
+      ]
     }
   },
   methods: {
@@ -63,6 +85,8 @@ export default {
         height: window.innerHeight
       })
       this.rendition.display();
+      this.themes = this.rendition.themes;
+      this.registerTheme();
     },
     leftTurning () {
       if (this.rendition) {
@@ -74,9 +98,24 @@ export default {
         this.rendition.next()
       }
     },
-    changeTitleAndBottonShow(){
-
+    changeTitleAndButtonShow(){
       this.titleAndButtonShow = !this.titleAndButtonShow
+      this.$refs.bottomMenu.changeFontButtonShow(1,-1);
+    },
+    setFontSize(index){
+      this.defaultFontSize = this.fontSizeList[index].fontSize;
+      if(this.themes){
+        this.themes.fontSize(this.defaultFontSize+'px')
+      }
+    },
+    registerTheme(){
+     this.themeList.forEach(them=>{
+       this.themes.register(them.name,them.style);
+     })
+    },
+    setSelectTheme(index){
+      this.themes.select(styleTheme[index].name);
+      this.defaultThem = index;
     }
   },
   mounted () {
@@ -98,63 +137,20 @@ export default {
       height: 100%;
       z-index: 100;
       display: flex;
-
       .left{
         flex: 0 0 px2rem(100);
-
       }
       .center{
         flex: 1;
-
       }
       .right{
         flex: 0 0 px2rem(100);
-
       }
     }
 
   }
-  .title-wraper{
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 101;
-    display: flex;
-    width: 100%;
-    background: white;
-    height: px2rem(40);
-    box-shadow: 0 px2rem(8) px2rem(8) rgba(0,0,0,.15);   //水平方向，垂直方向，模糊，rgb
-    .left{
-      flex: 0 0  px2rem(60);
-      @include center;
-    }
-    .right{
-      @include center;
-      flex: 1;
-      display: flex;
-      justify-content: flex-end;
-      .icon-wraper{
-        flex: 0 0 px2rem(40);
-      }
-    }
-  }
-  .bottom-wrapper{
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    z-index: 101;
-    display: flex;
-    width: 100%;
-    background: white;
-    height: px2rem(40);
-    box-shadow: 0 px2rem(-8) px2rem(8) rgba(0,0,0,.15);   //水平方向，垂直方向，模糊，rgb
-      .icon-wraper{
-        @include center;
-        display: flex;
-        flex: 1;
-      }
 
-  }
+
 
 
 }
